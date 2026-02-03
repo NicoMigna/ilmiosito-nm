@@ -9,20 +9,19 @@
 
 </head>
 <body>
-
-    <h1 style="font-family: 'Courier New', Courier, monospace; color: blueviolet;">ESERCIZIO 1</h1>
 <script>
 
 function setup() {
-    createCanvas(400, 400);
+    createCanvas(500, 400);
     background (200, 200, 200)
-    stroke (255, 0, 0);
-    fill (0, 255, 0);
-    rect (10, 10, 50, 50);
-    rect (100, 100, 50, 50);
-    rect (200, 200, 50, 50);
-    line (20, 20, 100, 100);
-    line (100, 100, 200, 200);
+    }
+
+function draw() {
+    fill(127 + 127 * sin(frameCount * 0.05), 127 + 127 * sin(frameCount * 0.05 + 2), 127 + 127 * sin(frameCount * 0.05 + 4));
+    noStroke();
+    
+    ellipse(mouseX, mouseY, 50 , 50);
+    ellipse(width-mouseX, mouseY, 50 , 50);
     }
 
 </script>
