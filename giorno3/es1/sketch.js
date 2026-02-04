@@ -1,20 +1,155 @@
+// Array of path objects, each containing an array of particles
+let paths = [];
+
+// How long until the next particle
+let framesBetweenParticles = 2;
+let nextParticleFrame = 0;
+
+// Location of last created particle
+let previousParticlePosition;
+
+// How long it takes for a particle to fade out
+let particleFadeFrames = 300;
+
 function setup() {
-			let cnv = createCanvas(windowWidth, windowHeight)
-			cnv.position(0, 0)
-			cnv.style('z-index', '-1')
-			face.resize(face.width / 7 * 1.1, face.height / 7 * 1.1)
-		}
+  let cnv = createCanvas(720, 400);
+  cnv.style('border-radius', '20px');
+  colorMode(HSB);
 
-function draw() {
-    
-
-
+  // Start with a default vector and then use this to save the position
+  // of the last created particle
+  previousParticlePosition = createVector();
+  describe(
+    'When the cursor drags along the black background, it draws a pattern of multicolored circles outlined in white and connected by white lines. The circles and lines fade out over time.'
+  );
 }
 
-//function draw() {
-  //  text("Hello World!", mouseX, mouseY);
-  //  fill(198, 171, 207);
-  //  textSize(random (5, 32));
-  //  textAlign(CENTER, CENTER);
-  //  textFont('Courier New');
-//}
+function draw() {
+  background(10);
+
+
+  // Update and draw all paths
+  for (let path of paths) {
+    path.update();
+    path.display();
+  }
+
+  // Draw a 10px gray frame with rounded corners
+  push();
+  noFill();
+  stroke(40);
+  strokeWeight(12);
+  rect(5, 5, width - 10, height - 10, 15);
+  pop();
+}
+
+// Create a new path when mouse is pressed
+function mousePressed() {
+  nextParticleFrame = frameCount;
+  paths.push(new Path());
+
+  // Reset previous particle position to mouse
+  // so that first particle in path has zero velocity
+  previousParticlePosition.set(mouseX, mouseY);
+  createParticle();
+}
+
+// Add particles when mouse is dragged
+function mouseDragged() {
+  // If it's time for a new point
+  if (frameCount >= nextParticleFrame) {
+    createParticle();
+  }
+}
+
+function createParticle() {
+  // Grab mouse position
+  let mousePosition = createVector(mouseX, mouseY);
+
+  // New particle's velocity is based on mouse movement
+  let velocity = p5.Vector.sub(mousePosition, previousParticlePosition);
+  velocity.mult(0.05);
+
+  // Add new particle
+  let lastPath = paths[paths.length - 1];
+  lastPath.addParticle(mousePosition, velocity);
+
+  // Schedule next particle
+  nextParticleFrame = frameCount + framesBetweenParticles;
+
+  // Store mouse values
+  previousParticlePosition.set(mouseX, mouseY);
+}
+
+// Path is a list of particles
+class Path {
+  constructor() {
+    this.particles = [];
+  }
+
+  addParticle(position, velocity) {
+    // Add a new particle with a position, velocity, and hue
+    let particleHue = (this.particles.length * 30) % 360;
+    this.particles.push(new Particle(position, velocity, particleHue));
+  }
+
+  // Update all particles
+  update() {
+    for (let particle of this.particles) {
+      particle.update();
+    }
+  }
+
+  // Draw a line between two particles
+  connectParticles(particleA, particleB) {
+    stroke(255);
+    line(
+      particleA.position.x,
+      particleA.position.y,
+      particleB.position.x,
+      particleB.position.y
+    );
+  }
+
+  // Display path
+  display() {
+    // Loop through backwards so that when a particle is removed,
+    // the index number for the next loop will match up with the
+    // particle before the removed one
+    for (let i = this.particles.length - 1; i >= 0; i -= 1) {
+      this.particles[i].display();
+
+      // If there is a particle after this one
+      if (i < this.particles.length - 1) {
+        // Connect them with a line
+        this.connectParticles(this.particles[i], this.particles[i + 1]);
+      }
+    }
+  }
+}
+
+// Particle along a path
+class Particle {
+  constructor(position, velocity, hue) {
+    this.position = position.copy();
+    this.velocity = velocity.copy();
+    this.hue = hue;
+    this.drag = 0.95;
+    this.framesRemaining = particleFadeFrames;
+  }
+
+  update() {
+    // Move it
+    this.position.add(this.velocity);
+
+    // Slow it down
+    this.velocity.mult(this.drag);
+  }
+
+  // Draw particle
+  display() {
+    noStroke();
+    fill(this.hue, 80, 90);
+    circle(this.position.x, this.position.y, 8);
+  }
+}
