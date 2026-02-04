@@ -12,7 +12,7 @@ let previousParticlePosition;
 let particleFadeFrames = 300;
 
 function setup() {
-  let cnv = createCanvas(720, 400);
+  let cnv = createCanvas(792, 440);
   cnv.style('border-radius', '20px');
   colorMode(HSB);
 
